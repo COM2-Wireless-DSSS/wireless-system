@@ -1,10 +1,9 @@
 close all; clear all; clc;
 
 M = [4 8 16]; % modulacao M-PSK
-%M = [4]; % modulacao M-PSK
-SNR_dB = 0:5:10; % SNR do canal AWGN
+SNR_dB = 0:0.5:15; % SNR do canal AWGN
 ts = 1e-6; fd = [100 200]; kdB = 15; % parametros do canal
-interactions = 1;
+interactions = 100;
 
 %%------------------------------------------------| CODIGO DE ESPALHAMENTO
 ff= 2; % qtd de flip-flops (ff=3 => 7 chips)
@@ -41,7 +40,7 @@ for m = 1:length(M)
             signal_rx_0 = filter(h0, signal_tx);
             signal_rx_1 = filter(h1, signal_tx);
 
-            %%------------------------------------------------| RECEPÇAO
+            %%------------------------------------------------| RECEP?AO
             signal_rx_0 = awgn(signal_rx_0, SNR_dB(snr));
             signal_rx_1 = awgn(signal_rx_1, SNR_dB(snr));
 
@@ -59,21 +58,54 @@ for m = 1:length(M)
 
             %%------------------------------------------------| DESESPALHAR
             r = -((reshape(rows_bin2', 2^C-1, nBits)*2)-1);
-            reconstruct = MSCode*r
-            reconstruct_bin = double(reconstruct<0) %% acho que o erro está por aqui
-            info_bin
+            reconstruct = MSCode*r;
+            reconstruct_bin = double(reconstruct<0); %% acho que o erro est? por aqui
+            info_bin;
             
             error = sum(info_bin ~= reconstruct_bin);
             ber = error/length(reconstruct_bin);
-            
             BER(m,snr) = BER(m,snr) + ber;
             
         end % i
         
         m;
         snr;
-        BER(m,snr) = BER(m,snr)/interactions
+        %BER(m,snr) = BER(m,snr)/interactions;
+        
         
     end % SNR
     
 end % M
+
+BER
+figure(1)
+hold on
+plot(SNR_dB, BER(1,:))
+plot(SNR_dB, BER(2,:))
+plot(SNR_dB, BER(3,:))
+xlabel('SNR (dB)');
+ylabel('Pb (BER)');
+grid on
+hold off
+
+figure(2)
+hold on
+semilogy(SNR_dB, BER(1,:))
+semilogy(SNR_dB, BER(2,:))
+semilogy(SNR_dB, BER(3,:))
+xlabel('SNR (dB)');
+ylabel('Pb (BER)');
+grid on
+hold off
+
+P=BER/interactions
+
+figure(3)
+hold on
+semilogy(SNR_dB, P(1,:))
+semilogy(SNR_dB, P(2,:))
+semilogy(SNR_dB, P(3,:))
+xlabel('SNR (dB)');
+ylabel('Pb (BER)');
+grid on
+hold off
