@@ -1,12 +1,12 @@
-close all; clear all; clc;
+% close all; clear all; clc;
 
 M = [4 8 16]; % modulacao M-PSK
 SNR_dB = 0:0.5:15; % SNR do canal AWGN
 ts = 1e-6; fd = [100 200]; kdB = 15; % parametros do canal
-interactions = 100;
+interactions = 50;
 
 %%------------------------------------------------| CODIGO DE ESPALHAMENTO
-ff= 2; % qtd de flip-flops (ff=3 => 7 chips)
+ff= 3; % qtd de flip-flops (ff=3 => 7 chips)
 C = 2^ff-1; % qtd de chips de espalhamento
 MSCode = mls(C,0);  % codigo de sequencia maxima (0b -> 1; 1b -> -1) (flag=0 default)
 
@@ -14,7 +14,7 @@ MSCode = mls(C,0);  % codigo de sequencia maxima (0b -> 1; 1b -> -1) (flag=0 def
 BER = zeros(length(M), length(SNR_dB));
 for m = 1:length(M)
     
-    nBits = log2(M(m))*2;
+    nBits = log2(M(m))*10;
     info_bin = randi([0 1], 1, nBits);
     info = -((info_bin*2)-1); % bits de informacao (0b -> 1; 1b -> -1) 
 
@@ -40,7 +40,7 @@ for m = 1:length(M)
             signal_rx_0 = filter(h0, signal_tx);
             signal_rx_1 = filter(h1, signal_tx);
 
-            %%------------------------------------------------| RECEP?AO
+            %%------------------------------------------------| RECEPCAO
             signal_rx_0 = awgn(signal_rx_0, SNR_dB(snr));
             signal_rx_1 = awgn(signal_rx_1, SNR_dB(snr));
 
@@ -52,60 +52,39 @@ for m = 1:length(M)
             
             %%------------------------------------------------| DEMODULAR
             demodulated = pskdemod(signal_rx,M(m));
-            %demodulated = pskdemod(signal_tx,M(m));
             rows_dec2 = demodulated;
             rows_bin2 = de2bi(rows_dec2);
 
             %%------------------------------------------------| DESESPALHAR
             r = -((reshape(rows_bin2', 2^C-1, nBits)*2)-1);
             reconstruct = MSCode*r;
-            reconstruct_bin = double(reconstruct<0); %% acho que o erro est? por aqui
+            reconstruct_bin = double(reconstruct<0);
             info_bin;
             
-            error = sum(info_bin ~= reconstruct_bin);
-            ber = error/length(reconstruct_bin);
+            ber = sum(xor(info_bin, reconstruct_bin));
             BER(m,snr) = BER(m,snr) + ber;
             
         end % i
         
         m;
         snr;
-        %BER(m,snr) = BER(m,snr)/interactions;
+        BER(m,snr) = BER(m,snr)/interactions;
         
         
     end % SNR
+    
+    BER(m,:) = BER(m,:)/nBits;
     
 end % M
 
 BER
 figure(1)
-hold on
-plot(SNR_dB, BER(1,:))
-plot(SNR_dB, BER(2,:))
-plot(SNR_dB, BER(3,:))
-xlabel('SNR (dB)');
-ylabel('Pb (BER)');
-grid on
-hold off
-
-figure(2)
-hold on
 semilogy(SNR_dB, BER(1,:))
+hold on;
 semilogy(SNR_dB, BER(2,:))
 semilogy(SNR_dB, BER(3,:))
 xlabel('SNR (dB)');
-ylabel('Pb (BER)');
-grid on
-hold off
-
-P=BER/interactions
-
-figure(3)
-hold on
-semilogy(SNR_dB, P(1,:))
-semilogy(SNR_dB, P(2,:))
-semilogy(SNR_dB, P(3,:))
-xlabel('SNR (dB)');
-ylabel('Pb (BER)');
-grid on
-hold off
+ylabel('BER');
+legend('4-PSK', '8-PSK', '16-PSK', 'location', 'best')
+grid on;
+hold off;
