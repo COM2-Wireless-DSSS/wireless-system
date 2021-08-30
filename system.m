@@ -1,13 +1,13 @@
-% close all; clear all; clc;
+close all; clear all; clc;
 
 M = [4 8 16]; % modulacao M-PSK
-SNR_dB = 0:0.5:15; % SNR do canal AWGN
+SNR_dB = -20:1:20; % SNR do canal AWGN
 ts = 1e-6; fd = [100 200]; kdB = 15; % parametros do canal
-interactions = 50;
+iterations = 200;
 
 %%------------------------------------------------| CODIGO DE ESPALHAMENTO
-ff= 3; % qtd de flip-flops (ff=3 => 7 chips)
-C = 2^ff-1; % qtd de chips de espalhamento
+ff= 2; % qtd de flip-flops (ff=2 => 7 chips)
+C = 2^ff-1;
 MSCode = mls(C,0);  % codigo de sequencia maxima (0b -> 1; 1b -> -1) (flag=0 default)
 
 
@@ -30,7 +30,7 @@ for m = 1:length(M)
     
     for snr = 1:length(SNR_dB)
         
-        for i=1:interactions
+        for i=1:iterations
             
             %%------------------------------------------------| GERAR 2 CANAIS (Rician)
             h0 = ricianchan(ts, fd(1), kdB);
@@ -68,7 +68,7 @@ for m = 1:length(M)
         
         m;
         snr;
-        BER(m,snr) = BER(m,snr)/interactions;
+        BER(m,snr) = BER(m,snr)/iterations;
         
         
     end % SNR
