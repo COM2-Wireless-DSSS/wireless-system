@@ -3,7 +3,7 @@ close all; clear all; clc;
 M = [4 8 16]; % modulacao M-PSK
 SNR_dB = -20:1:20; % SNR do canal AWGN
 ts = 1e-6; fd = [100 200]; kdB = 15; % parametros do canal
-iterations = 200;
+iterations = 1000;
 
 %%------------------------------------------------| CODIGO DE ESPALHAMENTO
 ff= 2; % qtd de flip-flops (ff=2 => 7 chips)
